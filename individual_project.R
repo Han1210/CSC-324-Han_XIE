@@ -21,25 +21,30 @@ library(stringr)
 library(shinythemes)
 library(maps)
 
+#load in all the data
 death <- read.csv("cause_of_deaths.csv")
 population1 <- read.csv("world_population.csv") %>%
   rename("Code"="CCA3")
-
-population <- population1[, !sapply(population1, is.numeric)]
-
-data1 <- merge(death, population, by = c("Code", "Country.Territory")) 
-
-data1$Country.Territory <- str_replace(data1$Country.Territory, "United States", "USA")
-
-world_map = map_data("world") %>% 
-  filter(! long > 180)
-
 data2000 <- read.csv("2000_global.csv")
 data2010 <- read.csv("2010_global.csv")
 data2015 <- read.csv("2015_global.csv")
 data2019 <- read.csv("2019_global.csv")
+world_map = map_data("world") %>% 
+  filter(! long > 180)
 
+#character to numerics
+population <- population1[, !sapply(population1, is.numeric)]
+
+#merge two datasets
+data1 <- merge(death, population, by = c("Code", "Country.Territory")) 
+
+#replace the code to make it correspond with map
+data1$Country.Territory <- str_replace(data1$Country.Territory, "United States", "USA")
+
+#bind data together
 summary <- bind_rows(data2000, data2010, data2015, data2019)
+
+#change characters to numerics
 summary <-  summary %>%
   mutate(totalNum = as.numeric(gsub(",","", summary$total))) %>%
   mutate(maleNum = as.numeric(gsub(",","", summary$male))) %>%
@@ -60,9 +65,9 @@ summary <-  summary %>%
   mutate(F_60_69_years = as.numeric(gsub(",","", summary$X60.69.years.1))) %>%
   mutate(M_70_years = as.numeric(gsub(",","", summary$X70..years))) %>%
   mutate(F_70_years = as.numeric(gsub(",","", summary$X70..years.1)))
-
 summary <- summary[-c(2:20)]
 
+#change causes names to correspond with cause of death data
 summary <- summary %>%
   mutate(causes = case_when(
     causes == "Protein-energy malnutrition" ~ "Protein.Energy.Malnutrition",
@@ -109,7 +114,7 @@ summary <- summary %>%
     TRUE ~ causes)) %>%
   group_by(causes)%>%
   summarize_all(.funs = sum) %>%
-  mutate(T_0_28_days = M_0_28_days + F_0_28_days) %>%
+  mutate(T_0_28_days = M_0_28_days + F_0_28_days) %>% # add up the death for male and female
   mutate(T_1_59_mons = M_1_59_mons+ F_1_59_mons) %>%
   mutate(T_5_14_years = M_5_14_years + F_5_14_years) %>%
   mutate(T_15_29_years = M_15_29_years + F_15_29_years) %>%
@@ -118,7 +123,7 @@ summary <- summary %>%
   mutate(T_60_69_years = M_60_69_years + F_60_69_years) %>%
   mutate(T_70_years = M_70_years + F_70_years)
 
-age_sex_info <- summary[-c(5:20)]
+age_sex_info <- summary[-c(5:20)] #select those mutated line only
 
 ui <- fluidPage(
   theme = shinytheme("united"),
@@ -126,7 +131,9 @@ ui <- fluidPage(
   # Application title
   titlePanel("Causes of Death Around the World (1990-2019)"),
   
+  #first row sidebar
   fluidRow(
+    #year selection input
     sidebarPanel(sliderInput("year_range", "Select Year Range", 
                              value = c(min(data1$Year), 
                                        max(data1$Year)), 
@@ -135,6 +142,7 @@ ui <- fluidPage(
                              step = 1, width = 1000),
                  width = 6,
     ),
+    # user instruction & show the total number of death and clearify the selection
     sidebarPanel(
       p("In the bar chart, click on the bar for each cause to focus on the specific data for that cause of death."),
       p("You can hover over the bar chart to find the zoom in, zoom out, and autoscale icons in the top right for better filtering the data."),
@@ -154,17 +162,17 @@ ui <- fluidPage(
     p(),
     p()
   ),
-  fluidRow(
+  fluidRow(#pie chart for gender and age separation
     column(6, plotlyOutput("piechart_gender")),
     column(6,plotlyOutput("piechart_age"))
   ),
-  fluidRow(
+  fluidRow(#instruction
     sidebarPanel(
       p("In the map below, hover over a country to get the total number of deaths. If you select the causes of death of a bar chart above, then hover over that country would give the total number of death for that cause. On the right, you will see the change in death rate over time."),
       width = 12
     )
   ),
-  fluidRow(
+  fluidRow(# map and scatterplot
     column(8,plotlyOutput("map", height = 500) ),
     column(4,plotOutput("scatterplot", height = 500) ),
   )
@@ -175,10 +183,12 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output) {
   
+  #input user selection in year and filter the data based on the selection
   filtered_data <- reactive({
     subset(data1, Year >= input$year_range[1] & Year <= input$year_range[2])
   })
   
+  #use the filtered data to mutate death number per million
   continent_death <- reactive({
     filtered_data() %>%
       select(-c("Code","Country.Territory", "Year", "Capital"))%>%
@@ -189,7 +199,7 @@ server <- function(input, output) {
   })
   
   
-  # Render histogram plot
+  # Render bar chart plot
   output$barChart <- renderPlotly({
     p <- ggplot(continent_death(), aes(x = reorder(causes, death_number_per_100_000_0), 
                                        y = death_number_per_100_000_0,
@@ -198,9 +208,10 @@ server <- function(input, output) {
       labs(x = "Causes", y = "Population per 1,000,000", title = "Causes of Death by Continent") +
       coord_flip()
     ggplotly(p)%>%
-      event_register("plotly_click")
+      event_register("plotly_click")#let user click to select cause
   })
   
+  #the data with causes and deathnumber only
   sumorder <- reactive({
     sumorder <- continent_death() %>%
       select(-c("Continent"))%>%
@@ -209,6 +220,7 @@ server <- function(input, output) {
     sumorder<-sumorder[order(sumorder$death_number), ]
   })
   
+  # click event
   output$click <- renderPrint({
     if(is.null(event_data("plotly_click"))){
       print(paste0("Unselected Yet"))
@@ -218,9 +230,10 @@ server <- function(input, output) {
     }
   })
   
+  # piechart 1 - gender ratio
   output$piechart_gender <- renderPlotly({
     height = 500
-    if(is.null(event_data("plotly_click"))){
+    if(is.null(event_data("plotly_click"))){#if user haven't click
       findCause <- age_sex_info%>%
         select(c(maleNum, femaleNum, causes))%>%
         rename("male" = maleNum)%>%
@@ -234,8 +247,8 @@ server <- function(input, output) {
                xaxis = list(showgrid = TRUE, zeroline = TRUE, showticklabels = FALSE),
                yaxis = list(showgrid = TRUE, zeroline = TRUE, showticklabels = FALSE)
         )
-    }else{
-      cause <- sumorder()$causes[event_data("plotly_click")$y]
+    }else{#if user have clicked
+      cause <- sumorder()$causes[event_data("plotly_click")$y] #store the clicked value
       findCause <- age_sex_info%>%
         select(c(maleNum, femaleNum, causes))%>%
         filter(causes == cause)%>%
@@ -251,10 +264,11 @@ server <- function(input, output) {
     }
   })
   
+  # piechart 2 - age ratio
   output$piechart_age <- renderPlotly({
     height = 500
     
-    if(is.null(event_data("plotly_click"))){
+    if(is.null(event_data("plotly_click"))){# if user haven't click, print overall condition
       findCause <- age_sex_info%>%
         select(-c(maleNum, femaleNum, totalNum))%>%
         pivot_longer(!causes, names_to = "right_num", values_to = "num")
@@ -266,8 +280,8 @@ server <- function(input, output) {
                xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
         )
-    }else{
-      cause <- sumorder()$causes[event_data("plotly_click")$y]
+    }else{#if user have clicked, print clicked condition
+      cause <- sumorder()$causes[event_data("plotly_click")$y] #store the clicked value
       findCause <- age_sex_info%>%
         select(-c(maleNum, femaleNum, totalNum))%>%
         filter(causes == cause)%>%
@@ -283,6 +297,7 @@ server <- function(input, output) {
     }
   })
   
+  #causes, death nunmber, Code are stored
   country_cause <- reactive({
     filtered_data() %>%
       select(-c("Country.Territory", "Year", "Capital", "Continent"))%>%
@@ -291,10 +306,10 @@ server <- function(input, output) {
       pivot_longer(!Code, names_to = "causes", values_to = "death_number")
   })
   
-  # Calculate sum of causes and their logarithms
-  
+  # map visualzation
   output$map <- renderPlotly({
-    if(is.null(event_data("plotly_click"))){
+    
+    if(is.null(event_data("plotly_click"))){# if user haven't click, output unclicked condition
       country_cause <- country_cause()%>%
         select(-"causes")%>%
         group_by(Code)%>%
@@ -307,7 +322,7 @@ server <- function(input, output) {
         layout(title = "Motality Rate for Different Countries (color represent population)", 
                showlegend = T,
                legend)
-    }else{
+    }else{#if user have clicked, output clicked condition
       
       mapCause <- toString(sumorder()$causes[event_data("plotly_click")$y])
       country_cause <- country_cause()%>%
@@ -322,6 +337,7 @@ server <- function(input, output) {
              showlegend = T)
   })
   
+  #the data frame of Code over death
   countryName <- reactive({
     filtered_data()%>%
       select(Code)%>%
@@ -329,8 +345,11 @@ server <- function(input, output) {
       summarize_all(.funs = sum)
   })
   
+  #scatterplot data vis
   output$scatterplot <- renderPlot({
     if(is.null(event_data("plotly_click")) && (length(as.vector(event_data("plotly_hover"))) != 3)){
+      #if user haven't click and does not hover onto the map
+      #print overall death
       overYear <- filtered_data()%>%
         select(-c("Continent","Country.Territory", "Code", "Capital"))%>%
         pivot_longer(!Year, names_to = "causes", values_to = "death_number")%>%
@@ -345,6 +364,7 @@ server <- function(input, output) {
         xlab("Year") + ylab("Death Population")
       
     }else if(is.null(event_data("plotly_click"))&& (length(as.vector(event_data("plotly_hover"))) == 3)){
+      #if hover over, print overall causes condition
       country_code <- as.numeric(event_data("plotly_hover")[2])+1
       The_code <- countryName()$Code[country_code]
       
@@ -363,6 +383,7 @@ server <- function(input, output) {
         xlab("Year") + ylab("Death Population")
       
     }else if(is.null(event_data("plotly_hover"))){
+      #if clicke, print overall countries
       mapCause <- toString(sumorder()$causes[event_data("plotly_click")$y])
       overYear <- filtered_data()%>%
         select(c("Year", mapCause))%>%
@@ -377,6 +398,7 @@ server <- function(input, output) {
         xlab("Year") + ylab("Death Population")
       
     }else if(length(as.vector(event_data("plotly_hover"))) != 3){
+      #if clicked and hover on other plots, print overall countries
       mapCause <- toString(sumorder()$causes[event_data("plotly_click")$y])
       overYear <- filtered_data()%>%
         select(c("Year", mapCause))%>%
@@ -389,7 +411,8 @@ server <- function(input, output) {
         geom_line() +
         geom_point() + ggtitle("Motality Rate over Time") +
         xlab("Year") + ylab("Death Population")
-    }else{
+      
+    }else{#clicked and hovered, print the corresponding death number over year for specific cause and country
       
       mapCause <- toString(sumorder()$causes[event_data("plotly_click")$y])
       
@@ -416,11 +439,16 @@ server <- function(input, output) {
     }
   })
   
-  output$population <- renderPrint({
-    if(is.null(event_data("plotly_click"))){
-      print(paste0("Unselected Yet"))
-    }else{
+  output$population <- renderPrint({ #print information on the total death population of selected cause
+   
+     if(is.null(event_data("plotly_click"))){#if not click yet, return unselected yet
+     
+        print(paste0("Unselected Yet"))
+       
+    }else{#if click, return the cause and total number
+      
       cause <- sumorder()$causes[event_data("plotly_click")$y]
+      
       Population <- country_cause()%>%
         filter(causes == cause)%>%
         select(c("death_number", "causes"))%>%
