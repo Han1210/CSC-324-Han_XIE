@@ -155,34 +155,38 @@ population1 <- read.csv("world_population.csv") %>%
   rename("Code"="CCA3")
   
 2. I have used string replace to ensure the same name in the map and the cause of death data.
+   
 data1$Country.Territory <- str_replace(data1$Country.Territory, "United States", "USA")
 
-3. I have merged the world population and cause of death data by code and country/region name
+4. I have merged the world population and cause of death data by code and country/region name
+   
    data1 <- merge(death, population, by = c("Code", "Country.Territory"))
 
-4. I have used mutate to make the variables numerics
+5. I have used mutate to make the variables numerics
+   
    summary <-  summary %>%
-  mutate(totalNum = as.numeric(gsub(",","", summary$total))) %>%
-  mutate(maleNum = as.numeric(gsub(",","", summary$male))) %>%
-  mutate(femaleNum = as.numeric(gsub(",","", summary$female))) %>%
-  mutate(M_0_28_days = as.numeric(gsub(",","", summary$X0.28.days))) %>%
-  mutate(F_0_28_days = as.numeric(gsub(",","", summary$X0.28.days.1))) %>%
-  mutate(M_1_59_mons = as.numeric(gsub(",","", summary$X1.59.months))) %>%
-  mutate(F_1_59_mons = as.numeric(gsub(",","", summary$X1.59.months.1))) %>%
-  mutate(M_5_14_years = as.numeric(gsub(",","", summary$X5.14.years))) %>%
-  mutate(F_5_14_years = as.numeric(gsub(",","", summary$X5.14.years.1))) %>%
-  mutate(M_15_29_years = as.numeric(gsub(",","", summary$X15.29.years))) %>%
-  mutate(F_15_29_years = as.numeric(gsub(",","", summary$X15.29.years.1))) %>%
-  mutate(M_30_49_years = as.numeric(gsub(",","", summary$X30.49.years))) %>%
-  mutate(F_30_49_years = as.numeric(gsub(",","", summary$X30.49.years.1))) %>%
-  mutate(M_50_59_years = as.numeric(gsub(",","", summary$X50.59.years))) %>%
-  mutate(F_50_59_years = as.numeric(gsub(",","", summary$X50.59.years.1))) %>%
-  mutate(M_60_69_years = as.numeric(gsub(",","", summary$X60.69.years))) %>%
-  mutate(F_60_69_years = as.numeric(gsub(",","", summary$X60.69.years.1))) %>%
-  mutate(M_70_years = as.numeric(gsub(",","", summary$X70..years))) %>%
-  mutate(F_70_years = as.numeric(gsub(",","", summary$X70..years.1)))
+      mutate(totalNum = as.numeric(gsub(",","", summary$total))) %>%
+      mutate(maleNum = as.numeric(gsub(",","", summary$male))) %>%
+      mutate(femaleNum = as.numeric(gsub(",","", summary$female))) %>%
+      mutate(M_0_28_days = as.numeric(gsub(",","", summary$X0.28.days))) %>%
+      mutate(F_0_28_days = as.numeric(gsub(",","", summary$X0.28.days.1))) %>%
+      mutate(M_1_59_mons = as.numeric(gsub(",","", summary$X1.59.months))) %>%
+      mutate(F_1_59_mons = as.numeric(gsub(",","", summary$X1.59.months.1))) %>%
+      mutate(M_5_14_years = as.numeric(gsub(",","", summary$X5.14.years))) %>%
+      mutate(F_5_14_years = as.numeric(gsub(",","", summary$X5.14.years.1))) %>%
+      mutate(M_15_29_years = as.numeric(gsub(",","", summary$X15.29.years))) %>%
+      mutate(F_15_29_years = as.numeric(gsub(",","", summary$X15.29.years.1))) %>%
+      mutate(M_30_49_years = as.numeric(gsub(",","", summary$X30.49.years))) %>%
+      mutate(F_30_49_years = as.numeric(gsub(",","", summary$X30.49.years.1))) %>%
+      mutate(M_50_59_years = as.numeric(gsub(",","", summary$X50.59.years))) %>%
+      mutate(F_50_59_years = as.numeric(gsub(",","", summary$X50.59.years.1))) %>%
+      mutate(M_60_69_years = as.numeric(gsub(",","", summary$X60.69.years))) %>%
+      mutate(F_60_69_years = as.numeric(gsub(",","", summary$X60.69.years.1))) %>%
+      mutate(M_70_years = as.numeric(gsub(",","", summary$X70..years))) %>%
+      mutate(F_70_years = as.numeric(gsub(",","", summary$X70..years.1)))
    
 6. I have used mutate to ensure the causes name to be the same
+   
 summary <- summary %>%
   mutate(causes = case_when(
     causes == "Protein-energy malnutrition" ~ "Protein.Energy.Malnutrition",
@@ -226,12 +230,15 @@ summary <- summary %>%
     causes == "Digestive diseases" ~ "Digestive.Diseases",
     causes == "Fire, heat and hot substances" ~ "Fire..Heat..and.Hot.Substances",
     causes == "Hepatitis" ~ "Acute.Hepatitis",
-    TRUE ~ causes))  
-7. I have used group_by and summarise to find the total population over years
+    TRUE ~ causes))
+   
+8. I have used group_by and summarise to find the total population over years
+   
    group_by(causes)%>%
   summarize_all(.funs = sum)
 
-8. calculate the total population of death from age, gender facet
+9. calculate the total population of death from age, gender facet
+   
 mutate(T_0_28_days = M_0_28_days + F_0_28_days) %>%
   mutate(T_1_59_mons = M_1_59_mons+ F_1_59_mons) %>%
   mutate(T_5_14_years = M_5_14_years + F_5_14_years) %>%
@@ -241,7 +248,7 @@ mutate(T_0_28_days = M_0_28_days + F_0_28_days) %>%
   mutate(T_60_69_years = M_60_69_years + F_60_69_years) %>%
   mutate(T_70_years = M_70_years + F_70_years)
 
-9. For each of the plots, I have used different filters, group_by, select, mutate, summarise, pivot_longer, etc. functions to be able to get the expected data inputs.
+10. For each of the plots, I have used different filters, group_by, select, mutate, summarise, pivot_longer, etc. functions to be able to get the expected data inputs.
  e.g. 1. data for the bar chart:
 
 filtered_data <- reactive({
@@ -256,20 +263,24 @@ continent_death <- reactive({
       pivot_longer(!Continent, names_to = "causes", values_to="death_number")%>%
       mutate(death_number_per_100_000_0 = death_number/1000000)
   })
-e.g. 2. data for the pie chart
-  cause <- sumorder()$causes[event_data("plotly_click")$y]
+  
+e.g. 2. data for the pie chart:
+
+      cause <- sumorder()$causes[event_data("plotly_click")$y]
       findCause <- age_sex_info%>%
         select(c(maleNum, femaleNum, causes))%>%
         filter(causes == cause)%>%
         pivot_longer(!causes, names_to = "right_num", values_to = "num")
 
 e.g. 3. data for the map:
-mapCause <- toString(sumorder()$causes[event_data("plotly_click")$y])
+
+      mapCause <- toString(sumorder()$causes[event_data("plotly_click")$y])
       country_cause <- country_cause()%>%
         filter(causes == mapCause)
 
 e.g. 4. data for the scatterplot:
-mapCause <- toString(sumorder()$causes[event_data("plotly_click")$y])
+      
+      mapCause <- toString(sumorder()$causes[event_data("plotly_click")$y])
       
       country_code <- as.numeric(event_data("plotly_hover")[2])+1
       The_code <- countryName()$Code[country_code]
@@ -344,5 +355,3 @@ The total mortality trend due to Malaria increased from 1990 to 2003 and then de
 1.	 world population analysis :  https://www.kaggle.com/code/hasibalmuzdadid/world-population-analysis/notebook)
 2.	Cause of Deaths around the World (Historical Data):  https://www.kaggle.com/datasets/iamsouravbanerjee/cause-of-deaths-around-the-world)
 5.	World map data: https://cran.r-project.org/web/packages/maps/index.html
-![image](https://github.com/Han1210/CSC-324-Han_XIE/assets/96587116/28ed4b6a-ad27-43cd-92c0-230331f12b6d)
-
