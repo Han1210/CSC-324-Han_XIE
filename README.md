@@ -1,6 +1,9 @@
 # How to access the Shiny app
 Shiny app have been uploaded in shinyapps.io. Users could access the website through the link:   https://ez35kq-han1210.shinyapps.io/CSC_324_individual_project/
 
+# Video
+Access through one drive link: https://grinco-my.sharepoint.com/:v:/g/personal/xiehan_grinnell_edu/EaHRqhXq5_lGvxPkd8OEC44B14xuokq6AB44I9UpAy223Q
+
 ## Acknowledgment: 
 
 In this project, I have used different answers from stack overflow and the package documentation for ggplot, dplyr, tidyr, plotly, stringr. Those information helps me 
