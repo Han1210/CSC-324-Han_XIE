@@ -1,0 +1,25 @@
+---
+title: "Untitled"
+author: "Han Xie"
+date: '2024-03-01'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+```
+
+```{r}
+log <- read_csv("log.csv")
+
+p <- ggplot(log, aes(x = fct_inorder(day),  y = time,
+                     fill = factor(category))) + 
+  geom_bar(stat = "identity") +
+  labs(x = "date", y = "time(hours)", title = "Time/Tasks Log chart") 
+
+ggplotly(p)
+```
+
