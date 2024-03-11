@@ -1,13 +1,7 @@
 # How to access the Shiny app
 Shiny app have been uploaded in shinyapps.io. Users could access the website through the link:  https://ez35kq-han1210.shinyapps.io/Shiny_R/
 
----
-## title: "Project Documentation"
-
-## author: "Han Xie"
----
-
-# Acknowledgment: 
+## Acknowledgment: 
 
 In this project, I have used different answers from stack overflow and the package documentation for ggplot, dplyr, tidyr, plotly, stringr. Those information helps me 
 build the plots, and figure out the specific questions I have encountered.
@@ -19,7 +13,7 @@ the shiny app.
 I acknowledge the help from the Vivero Digital Fellows program in better designing the
 visualization and give advice about the graph's titles.
 
-# Project Purpose
+## Project Purpose
 
 A straightforward way to assess the health status of a population is to focus on mortality – or concepts like child mortality or life expectancy, which are based on mortality estimates. A focus on mortality, however, does not take into account that the burden of diseases is not only that they kill people, but that they cause suffering to people who live with them. Assessing health outcomes by both mortality and morbidity (the prevalent diseases) provides a more encompassing view on health outcomes. 
 
@@ -33,7 +27,7 @@ The users could be scientists who would like to see how effective certain types 
 
 As described in the purpose, the project aims to help people assess the health status of the population based on different causes of death. General data visualization helps users to view the trends of the variation in the death population.
 
-# Data Description
+## Data Description
 There are 7 different datasets collected from 4 different sources. 
 
 ## Source 1: data from WHO (2000_global.csv, 2010_global.csv, 2015_global.csv, 2019_global.csv)
@@ -137,14 +131,14 @@ Format: There are 98977 observations of 6 variables, The observations involve bo
 5. region: the region name, characters
 6. subregion: the subregion name, characters
 
-# Questions
+## Questions
 I am trying to understand the death information for each of the causes. Here, I would use Malaria as an example to demonstrate the specific questions, but it could apply to different causes listed.
 1. What are the gender and age ratios for the death of Malaria?
 2. Which country has the greatest number of deaths?
 3. What is the trend of death numbers over time?
 4. What is the mortality rate due to Malaria?
 
-# Insights
+## Insights
 By looking at the data visualization I did, I can find that:
 1. The total death number due to Malaria is 21768985 from 1990 to 2019.
 2. While looking at each continent, Africa has the greatest number of people who died of Malaria (more than 18 million); The second greatest is Asia where more than 3 million people died due to malaria.
@@ -153,7 +147,7 @@ By looking at the data visualization I did, I can find that:
 5. The country that has been affected the most is Nigeria, with a total amount of 6.4 million. The second affected country is India, with an amount of 2.44 million.
 6. The total mortality trend due to Malaria increased from 1990 to 2003 and then decreased from 2003 to 2019. This might be due to the development of medicine which functionally prevents the increment of mortality.
 
-# the process to make work reproducible
+## the process to make work reproducible
 
 1. I have used rename() to keep the column name to be the same name in population data and the cause of death data.
 
@@ -292,7 +286,7 @@ mapCause <- toString(sumorder()$causes[event_data("plotly_click")$y])
         rename("death_number" = mapCause)%>%
         select(c("Year","death_number"))
 
-#  design decisions
+##  design decisions
 ## bar chart
 What?
 The bar chart shows different causes over population with different continents information
@@ -332,3 +326,23 @@ Why?
 I want to see the trend of variation of mortality over time
 How?
 The total mortality trend due to Malaria increased from 1990 to 2003 and then decreased from 2003 to 2019. This might be due to the development of medicine which functionally prevents the increment of mortality.
+
+## Limitation with potential improvement
+
+1.	Lack of information about the death cause of exposure of heat and cold for the two pie chats since I cannot find related information about that.
+2.	The gender is only limited to the two types of genders which is not inclusive enough for LGBTQ group
+3.	Since I am only able to find one way to use one click, if user accidentally click on the other visualizations, the graph will show as error. I do not have a good way to solve it for now
+4.	Not able to unselect the causes for the bar chart
+
+
+## Reference
+
+1.	CSC 324 class page: https://jimenezp.cs.grinnell.edu/Courses/CSC324/2024Sp/schedule/
+2.	Interactive plot: https://shiny.posit.co/r/articles/build/plot-interaction/
+3.	WHO data: https://www.who.int/data/gho/data/themes/mortality-and-global-health-estimates/ghe-leading-causes-of-death
+4.	Kaggle data:
+1.	 world population analysis :  https://www.kaggle.com/code/hasibalmuzdadid/world-population-analysis/notebook)
+2.	Cause of Deaths around the World (Historical Data):  https://www.kaggle.com/datasets/iamsouravbanerjee/cause-of-deaths-around-the-world)
+5.	World map data: https://cran.r-project.org/web/packages/maps/index.html
+![image](https://github.com/Han1210/CSC-324-Han_XIE/assets/96587116/28ed4b6a-ad27-43cd-92c0-230331f12b6d)
+
